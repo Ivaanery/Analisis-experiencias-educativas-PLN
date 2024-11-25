@@ -1,0 +1,50 @@
+from sklearn.model_selection import train_test_split
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.svm import SVC
+from sklearn.metrics import accuracy_score, classification_report
+import nltk
+from nltk.tokenize import word_tokenize
+from nltk.corpus import stopwords
+import string
+
+# Descargar los recursos de NLTK (si no los tienes)
+nltk.download('punkt')
+nltk.download('stopwords')
+
+# Cargar el archivo de texto (reemplaza 'archivo.txt' por tu archivo)
+with open('pregunta1.txt', 'r') as file:
+    data = file.readlines()
+
+# Preprocesamiento de texto
+stop_words = set(stopwords.words('english'))
+punctuation = set(string.punctuation)
+
+def preprocess_text(text):
+    tokens = word_tokenize(text.lower())  # Convertir a minúsculas y tokenizar
+    tokens = [word for word in tokens if word not in stop_words and word not in punctuation]  # Eliminar stopwords y signos de puntuación
+    return ' '.join(tokens)
+
+# Dividir los datos en características (X) y etiquetas (y)
+X = [preprocess_text(sentence) for sentence in data]
+y = ['positivo', 'negativo', 'neutro']  # Reemplaza 'your_sentiment_labels' con las etiquetas reales
+
+# Vectorización de texto con TF-IDF
+vectorizer = TfidfVectorizer()
+X_vectorized = vectorizer.fit_transform(X)
+
+# División de datos en conjuntos de entrenamiento y prueba
+X_train, X_test, y_train, y_test = train_test_split(X_vectorized, y, test_size=0.2, random_state=42)
+
+# Entrenar el modelo de SVM
+svm_classifier = SVC(kernel='linear')  # Selecciona el kernel apropiado para tu conjunto de datos
+svm_classifier.fit(X_train, y_train)
+
+# Predicciones en el conjunto de prueba
+predictions = svm_classifier.predict(X_test)
+
+# Medir la precisión del modelo
+accuracy = accuracy_score(y_test, predictions)
+print(f'Accuracy: {accuracy}')
+
+# Mostrar el reporte de clasificación
+print(classification_report(y_test, predictions))

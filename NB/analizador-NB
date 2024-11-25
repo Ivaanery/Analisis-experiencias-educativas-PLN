@@ -1,0 +1,63 @@
+from sklearn.model_selection import train_test_split
+from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.naive_bayes import MultinomialNB
+from sklearn.metrics import accuracy_score, classification_report
+import nltk
+from nltk.tokenize import word_tokenize
+from nltk.corpus import stopwords
+import string
+
+# Descarga los recursos de NLTK (si no los tienes)
+nltk.download('punkt')
+nltk.download('stopwords')
+
+etiquetas = ["positivo", "negativo", "neutro"]
+# Carga el archivo de texto (reemplaza 'archivo.txt' por tu archivo)
+with open('pregunta1.txt', 'r') as file:
+    data = file.readlines()
+
+# Lee el archivo de texto
+with open('pregunta1.txt', 'r') as file:
+    texto = file.read()
+
+# Elimina las comas del texto
+texto_sin_comas = texto.replace(',', '')
+
+# Escribe el texto sin comas de nuevo al archivo
+with open('pregunta1.txt', 'w') as file:
+    file.write(texto_sin_comas)
+
+
+# Preprocesamiento de texto
+stop_words = set(stopwords.words('english'))
+punctuation = set(string.punctuation)
+
+def preprocess_text(text):
+    tokens = word_tokenize(text.lower())  # Convierte a minúsculas y tokeniza
+    tokens = [word for word in tokens if word not in stop_words and word not in punctuation]  # Elimina stopwords y signos de puntuación
+    return ' '.join(tokens)
+
+# Dividir los datos en características (X) y etiquetas (y)
+X = [preprocess_text(sentence) for sentence in data]
+y = [etiquetas]  # Reemplaza 'your_sentiment_labels' con las etiquetas reales
+
+# Vectorización de texto
+vectorizer = CountVectorizer()
+X_vectorized = vectorizer.fit_transform(X)
+
+# División de datos en conjuntos de entrenamiento y prueba
+X_train, X_test, y_train, y_test = train_test_split(X_vectorized, y, test_size=0.2, random_state=42)
+
+# Entrenar el modelo de clasificación Naive Bayes
+naive_bayes = MultinomialNB()
+naive_bayes.fit(X_train, y_train)
+
+# Predicciones en el conjunto de prueba
+predictions = naive_bayes.predict(X_test)
+
+# Medir la precisión del modelo
+accuracy = accuracy_score(y_test, predictions)
+print(f'Accuracy: {accuracy}')
+
+# Mostrar el reporte de clasificación
+print(classification_report(y_test, predictions))
